@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WoW Infographic Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --gold: #c9a84c; --gold-light: #f0d080; --gold-dark: #8a6a1f;
+  --teal: #4ecdc4; --purple: #9b59b6; --purple-glow: #cc88ff; --green: #7ab648;
+  --bg-dark: #050d1a; --bg-panel: rgba(5,15,35,0.88);
+  --ui-bg: #0d1117; --ui-border: #30363d; --ui-text: #c9d1d9; --ui-accent: #c9a84c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#060a0f;font-family:'Inter',sans-serif;color:var(--ui-text);display:flex;flex-direction:column;min-height:100vh;}
+
+/* ── APP SHELL ── */
+.app-header{background:linear-gradient(135deg,#0d1117,#141b24);border-bottom:1px solid var(--gold-dark);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;z-index:200;position:sticky;top:0;}
+.app-logo{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold-light);text-shadow:0 0 10px rgba(201,168,76,0.5);white-space:nowrap;}
+.app-logo span{color:rgba(201,168,76,0.5);font-size:11px;font-family:'Inter',sans-serif;display:block;font-weight:300;letter-spacing:2px;margin-top:-2px;}
+.header-sep{flex:1;}
+.hbtn{background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold-dark);color:var(--gold-light);font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;padding:7px 16px;cursor:pointer;text-transform:uppercase;transition:all .2s;white-space:nowrap;}
+.hbtn:hover{border-color:var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.4);}
+.hbtn.primary{background:linear-gradient(135deg,#1a3a1a,#0a2a0a);border-color:#4a8a4a;color:#a8d878;}
+.hbtn.primary:hover{box-shadow:0 0 12px rgba(100,200,80,0.4);border-color:#7ab648;}
+.hbtn.ai-btn{background:linear-gradient(135deg,#1a1040,#0a0828);border-color:#6644aa;color:#cc88ff;}
+.hbtn.ai-btn:hover{box-shadow:0 0 12px rgba(150,80,255,0.5);border-color:#9966dd;}
+.hbtn.ai-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* ── MAIN LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:320px;flex-shrink:0;background:#0d1117;border-right:1px solid var(--ui-border);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--ui-border);}
+.stab{flex:1;padding:10px 6px;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:'Cinzel',serif;color:rgba(201,168,76,0.5);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
+.stab.active{color:var(--gold-light);border-bottom-color:var(--gold);}
+.stab:hover:not(.active){color:var(--gold);}
+.tab-panel{display:none;padding:14px;flex:1;flex-direction:column;gap:12px;}
+.tab-panel.active{display:flex;}
+
+/* Sidebar form elements */
+.field-group{display:flex;flex-direction:column;gap:5px;}
+.field-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(201,168,76,0.6);font-family:'Cinzel',serif;}
+.field-input,.field-textarea,.field-select{background:#161c24;border:1px solid var(--ui-border);color:var(--ui-text);font-family:'Inter',sans-serif;font-size:13px;padding:7px 10px;width:100%;border-radius:2px;transition:border-color .2s;resize:vertical;}
+.field-input:focus,.field-textarea:focus,.field-select:focus{outline:none;border-color:var(--gold-dark);}
+.field-textarea{min-height:70px;line-height:1.5;}
+.field-select{cursor:pointer;}
+
+/* Panel selector */
+.panel-selector{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.psel-btn{background:#161c24;border:1px solid var(--ui-border);color:rgba(255,255,255,0.6);font-family:'Cinzel',serif;font-size:10px;padding:8px 6px;cursor:pointer;letter-spacing:0.5px;transition:all .2s;text-align:center;line-height:1.3;}
+.psel-btn:hover{border-color:var(--gold-dark);color:var(--gold);}
+.psel-btn.active{border-color:var(--gold);color:var(--gold-light);background:#1a1400;}
+
+/* Colour swatches */
+.swatch-row{display:flex;gap:6px;flex-wrap:wrap;}
+.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;position:relative;}
+.swatch:hover{transform:scale(1.15);}
+.swatch.active{border-color:#fff;box-shadow:0 0 8px rgba(255,255,255,0.4);}
+
+/* Bullets editor */
+.bullets-list{display:flex;flex-direction:column;gap:4px;}
+.bullet-row{display:flex;gap:6px;align-items:center;}
+.bullet-input{flex:1;background:#161c24;border:1px solid var(--ui-border);color:var(--ui-text);font-size:12px;padding:5px 8px;font-family:'Crimson Text',serif;}
+.bullet-input:focus{outline:none;border-color:var(--gold-dark);}
+.icon-btn{background:none;border:1px solid var(--ui-border);color:rgba(255,255,255,0.4);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;flex-shrink:0;}
+.icon-btn:hover{border-color:var(--gold-dark);color:var(--gold);}
+.icon-btn.del:hover{border-color:#aa4444;color:#ff6666;}
+.add-bullet-btn{background:#0d1a0d;border:1px solid #2a4a2a;color:#7ab648;font-size:11px;padding:6px;cursor:pointer;letter-spacing:1px;font-family:'Cinzel',serif;text-transform:uppercase;width:100%;transition:all .2s;}
+.add-bullet-btn:hover{background:#142014;border-color:#4a8a4a;}
+
+/* AI panel */
+.ai-prompt-area{display:flex;flex-direction:column;gap:8px;}
+.ai-result{background:#0a0f1a;border:1px solid #2a2060;color:rgba(200,180,255,0.9);font-size:12px;padding:10px;line-height:1.6;min-height:80px;font-family:'Crimson Text',serif;border-radius:2px;}
+.ai-result.loading{color:rgba(150,100,255,0.5);font-style:italic;}
+.ai-apply-row{display:flex;gap:6px;}
+.ai-apply-btn{flex:1;background:#1a1040;border:1px solid #6644aa;color:#cc88ff;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;padding:7px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.ai-apply-btn:hover{background:#261560;border-color:#9966dd;}
+
+/* Global settings */
+.section-divider{height:1px;background:linear-gradient(to right,transparent,var(--gold-dark),transparent);margin:4px 0;}
+.section-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,0.4);margin-bottom:2px;}
+
+/* ── CANVAS AREA ── */
+.canvas-area{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;background:repeating-linear-gradient(45deg,#060a0f,#060a0f 10px,#07090e 10px,#07090e 20px);}
+.canvas-wrapper{position:relative;}
+.canvas-scale-note{font-size:10px;color:rgba(201,168,76,0.3);font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;margin-top:8px;}
+
+/* ── INFOGRAPHIC CANVAS ── */
+.canvas{width:1920px;height:1080px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,#0a1a3a 0%,#04090f 60%,#000 100%);transform-origin:top left;cursor:default;}
+.canvas::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1px 1px at 8% 5%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1px 1px at 20% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 75% 8%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 90% 18%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 60% 22%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(2px 2px at 40% 15%,rgba(200,180,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 15% 30%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 30% 88%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1px 1px at 65% 92%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 5% 75%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(1px 1px at 95% 80%,rgba(255,255,255,.2) 0%,transparent 100%);pointer-events:none;z-index:0;}
+.castle{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:500px;height:320px;opacity:.13;background:linear-gradient(to top,#1a2a4a,#0d1520);clip-path:polygon(0% 100%,0% 70%,5% 70%,5% 55%,10% 55%,10% 40%,15% 40%,15% 30%,20% 30%,20% 15%,25% 15%,25% 5%,30% 5%,30% 0%,32% 0%,32% 5%,35% 5%,35% 10%,38% 10%,38% 15%,42% 15%,42% 20%,46% 20%,46% 28%,50% 25%,54% 28%,54% 20%,58% 20%,58% 15%,62% 15%,62% 10%,65% 10%,65% 5%,68% 5%,68% 0%,70% 0%,70% 5%,75% 5%,75% 15%,80% 15%,80% 30%,85% 30%,85% 40%,90% 40%,90% 55%,95% 55%,95% 70%,100% 70%,100% 100%);z-index:1;}
+.outer-border{position:absolute;inset:8px;border:2px solid var(--gold-dark);z-index:2;pointer-events:none;}
+.outer-border::before{content:'';position:absolute;inset:4px;border:1px solid rgba(201,168,76,.25);}
+.corner{position:absolute;width:60px;height:60px;z-index:10;pointer-events:none;}
+.corner svg{width:100%;height:100%;}
+.corner-tl{top:6px;left:6px;} .corner-tr{top:6px;right:6px;transform:scaleX(-1);}
+.corner-bl{bottom:6px;left:6px;transform:scaleY(-1);} .corner-br{bottom:6px;right:6px;transform:scale(-1);}
+.header-area{position:absolute;top:18px;left:50%;transform:translateX(-50%);text-align:center;z-index:5;width:920px;}
+.hdiv{display:flex;align-items:center;gap:12px;}
+.hdiv-line{flex:1;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);}
+.hdiv-diamond{width:8px;height:8px;background:var(--gold);transform:rotate(45deg);flex-shrink:0;}
+.main-title{font-family:'Cinzel Decorative',serif;font-size:50px;font-weight:700;color:var(--gold-light);text-shadow:0 0 20px rgba(201,168,76,.8),0 0 40px rgba(201,168,76,.4),2px 2px 4px #000;line-height:1.1;letter-spacing:2px;margin:5px 0 4px;}
+.subtitle-text{font-family:'Crimson Text',serif;font-size:18px;font-style:italic;color:rgba(200,200,220,.8);text-shadow:0 1px 3px #000;margin-bottom:5px;}
+.center-orb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;z-index:6;}
+.orb-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 20px var(--gold),inset 0 0 20px rgba(80,40,160,.5);animation:orbPulse 3s ease-in-out infinite;}
+.orb-ring-inner{position:absolute;inset:15px;border-radius:50%;border:1px solid rgba(201,168,76,.5);background:radial-gradient(circle,#1a0a3a 0%,#0a0520 50%,#050210 100%);box-shadow:0 0 30px rgba(100,50,200,.6),inset 0 0 30px rgba(100,50,200,.4);}
+.orb-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
+.orb-title{font-family:'Cinzel Decorative',serif;font-size:22px;font-weight:700;color:#fff;text-shadow:0 0 15px #00fff0,0 0 30px rgba(100,200,255,.5);text-align:center;line-height:1.2;letter-spacing:1px;}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 20px var(--gold),inset 0 0 20px rgba(80,40,160,.5);}50%{box-shadow:0 0 35px var(--gold),0 0 60px rgba(201,168,76,.3),inset 0 0 20px rgba(80,40,160,.5);}}
+.lightning-svg{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;}
+.moon-symbol{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:28px;color:rgba(150,160,220,.6);z-index:5;text-shadow:0 0 15px rgba(150,160,220,.8);}
+
+/* Infographic panels */
+.inf-panel{position:absolute;z-index:5;cursor:pointer;transition:filter .2s;}
+.inf-panel.selected .inf-panel-inner{border-color:var(--gold)!important;border-width:2px!important;}
+.inf-panel-inner{background:#050f23;border:1px solid var(--gold-dark);position:relative;padding:14px 14px 12px 14px;height:100%;transition:border-color .3s;overflow:hidden;display:flex;flex-direction:column;}
+.inf-panel:hover .inf-panel-inner{border-color:rgba(201,168,76,.6);}
+.inf-panel-inner::before,.inf-panel-inner::after{content:'';position:absolute;width:14px;height:14px;border-color:var(--gold);border-style:solid;}
+.inf-panel-inner::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.inf-panel-inner::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.panel-body{display:flex;flex-direction:row;gap:11px;align-items:flex-start;height:100%;}
+.pimg{width:80px;min-width:80px;height:80px;border:1px solid var(--gold-dark);background:rgba(20,10,40,.8);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(201,168,76,.4);text-align:center;font-family:'Cinzel',serif;flex-shrink:0;position:relative;overflow:hidden;cursor:pointer;flex-direction:column;gap:3px;transition:border-color .2s,background .2s;}
+.pimg::before,.pimg::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--gold-dark);border-style:solid;}
+.pimg::before{top:0;left:0;border-width:1px 0 0 1px;}
+.pimg::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.pimg:hover{border-color:var(--gold);background:rgba(40,20,60,.8);}
+.panel-text{flex:1;min-width:0;overflow:hidden;}
+.pheading{font-family:'Cinzel',serif;font-size:15px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;text-shadow:0 1px 3px #000;line-height:1.2;}
+.plist{list-style:none;font-family:'Crimson Text',serif;font-size:14px;color:rgba(220,220,240,.9);line-height:1.55;}
+.plist li{padding-left:14px;position:relative;}
+.plist li::before{content:'✦';position:absolute;left:0;font-size:9px;top:3px;}
+
+/* Theme colours */
+.t-gold .pheading{color:var(--gold-light);} .t-gold .plist li::before{color:var(--gold);} .t-gold .inf-panel-inner{background:#0f0c02;}
+.t-teal .pheading{color:var(--teal);} .t-teal .plist li::before{color:var(--teal);} .t-teal .inf-panel-inner{background:#020f0f;}
+.t-purple .pheading{color:var(--purple-glow);} .t-purple .plist li::before{color:var(--purple);} .t-purple .inf-panel-inner{background:#08020f;}
+.t-green .pheading{color:#a8d878;} .t-green .plist li::before{color:var(--green);} .t-green .inf-panel-inner{background:#020f02;}
+.t-red .pheading{color:#ff8888;} .t-red .plist li::before{color:#cc4444;} .t-red .inf-panel-inner{background:#0f0202;}
+.t-blue .pheading{color:#88aaff;} .t-blue .plist li::before{color:#4466cc;} .t-blue .inf-panel-inner{background:#02040f;}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#1a1400,#2a2000);border:1px solid var(--gold);color:var(--gold-light);font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;padding:10px 20px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* AI spinner */
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner{width:12px;height:12px;border:2px solid rgba(150,80,255,.3);border-top-color:#9b59b6;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;margin-right:6px;}
+</style>
+</head>
+<body>
+
+<!-- APP HEADER -->
+<div class="app-header">
+  <div class="app-logo">✦ Infographic Builder <span>THE DUNGEON DOJO EDITION</span></div>
+  <div class="header-sep"></div>
+  <button class="hbtn" onclick="resetCanvas()">↺ Reset</button>
+  <button class="hbtn primary" onclick="exportPNG()">📸 Export PNG</button>
+</div>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="switchTab('global')">Global</button>
+      <button class="stab" onclick="switchTab('panel')">Panel</button>
+    </div>
+
+    <!-- GLOBAL TAB -->
+    <div class="tab-panel active" id="tab-global">
+      <div class="section-title">Header</div>
+      <div class="field-group">
+        <div class="field-label">Main Title</div>
+        <textarea class="field-textarea" id="g-title" oninput="updateGlobal()" style="min-height:54px;font-family:'Cinzel Decorative',serif;">World of Warcraft:
+Midnight Endgame Activities</textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Subtitle</div>
+        <input class="field-input" id="g-subtitle" oninput="updateGlobal()" value="A visual guide to the major endgame paths in Midnight.">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Central Orb Text</div>
+        <textarea class="field-textarea" id="g-orb" oninput="updateGlobal()" style="min-height:44px;">Midnight
+Endgame</textarea>
+      </div>
+      <div class="section-divider"></div>
+      <div class="section-title">Background</div>
+      <div class="field-group">
+        <div class="field-label">Background Style</div>
+        <select class="field-select" id="g-bg" onchange="updateGlobal()">
+          <option value="space">Space / Starfield</option>
+          <option value="deep">Deep Void</option>
+          <option value="forest">Arcane Forest</option>
+          <option value="fire">Hellfire</option>
+        </select>
+      </div>
+      <div class="section-divider"></div>
+      <div class="section-title">Background Image</div>
+      <div class="field-group">
+        <div class="field-label">Image Opacity</div>
+        <input class="field-input" type="range" id="g-bg-img-opacity" min="5" max="80" value="35" oninput="updateBgImageOpacity(this.value)" style="padding:4px 0;">
+        <span id="g-bg-img-opacity-val" style="font-size:11px;color:rgba(201,168,76,0.5);font-family:'Cinzel',serif;">35%</span>
+      </div>
+      <button class="hbtn" onclick="uploadBgImage()" style="width:100%;">🖼 Upload Background Image</button>
+      <button class="hbtn" id="remove-bg-img-btn" onclick="removeBgImage()" style="width:100%;border-color:#aa4444;color:#ff8888;display:none;margin-top:4px;">✕ Remove Background Image</button>
+      <div class="section-divider"></div>
+      <div class="section-title">Central Orb Image</div>
+      <div class="field-group">
+        <div class="field-label">Image Opacity</div>
+        <input class="field-input" type="range" id="g-orb-img-opacity" min="10" max="100" value="55" oninput="updateOrbImageOpacity(this.value)" style="padding:4px 0;">
+        <span id="g-orb-img-opacity-val" style="font-size:11px;color:rgba(201,168,76,0.5);font-family:'Cinzel',serif;">55%</span>
+      </div>
+      <button class="hbtn" onclick="uploadOrbImage()" style="width:100%;">⭕ Upload Orb Image</button>
+      <button class="hbtn" id="remove-orb-img-btn" onclick="removeOrbImage()" style="width:100%;border-color:#aa4444;color:#ff8888;display:none;margin-top:4px;">✕ Remove Orb Image</button>
+      <div class="section-divider"></div>
+      <div class="section-title">Dungeon Dojo Logo</div>
+      <div class="field-group">
+        <div class="field-label">Logo Position</div>
+        <select class="field-select" id="g-logo-pos" onchange="updateLogoPosition()">
+          <option value="top-right">Top-right corner</option>
+          <option value="top-left">Top-left corner</option>
+          <option value="orb">Behind central orb</option>
+          <option value="bottom-right">Bottom-right corner</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Logo Size</div>
+        <input class="field-input" type="range" id="g-logo-size" min="60" max="300" value="120" oninput="updateLogoSize(this.value)" style="padding:4px 0;">
+        <span id="g-logo-size-val" style="font-size:11px;color:rgba(201,168,76,0.5);font-family:'Cinzel',serif;">120px</span>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Opacity</div>
+        <input class="field-input" type="range" id="g-logo-opacity" min="10" max="100" value="90" oninput="updateLogoOpacity(this.value)" style="padding:4px 0;">
+        <span id="g-logo-opacity-val" style="font-size:11px;color:rgba(201,168,76,0.5);font-family:'Cinzel',serif;">90%</span>
+      </div>
+      <button class="hbtn" onclick="uploadLogo()" style="width:100%;">🏯 Upload Dungeon Dojo Logo</button>
+      <button class="hbtn" id="remove-logo-btn" onclick="removeLogo()" style="width:100%;border-color:#aa4444;color:#ff8888;display:none;">✕ Remove Logo</button>
+      <div class="section-divider"></div>
+      <div class="section-title">Panels (select to edit)</div>
+      <div class="panel-selector" id="panelSelector"></div>
+    </div>
+
+    <!-- PANEL TAB -->
+    <div class="tab-panel" id="tab-panel">
+      <div id="panel-editor-content">
+        <div style="color:rgba(201,168,76,0.4);font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;text-align:center;padding:20px;">
+          ← Click a panel on the canvas<br>or select one from Global tab
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div class="canvas-area">
+    <div class="canvas-wrapper">
+      <div class="canvas" id="canvas" onclick="handleCanvasClick(event)">
+
+        <div class="outer-border"></div>
+        <div class="castle"></div>
+
+        <!-- Corners -->
+        <div class="corner corner-tl"><svg viewBox="0 0 60 60"><path d="M4 4 L36 4 M4 4 L4 36" stroke="#c9a84c" stroke-width="2" fill="none"/><path d="M4 4 L20 20" stroke="#c9a84c" stroke-width="1" fill="none" opacity=".5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity=".9"/><circle cx="36" cy="4" r="2" fill="#c9a84c" opacity=".4"/><circle cx="4" cy="36" r="2" fill="#c9a84c" opacity=".4"/><circle cx="16" cy="12" r="1.5" fill="#c9a84c" opacity=".6"/><path d="M12 4 L12 12 L4 12" stroke="#c9a84c" stroke-width="1" fill="none" opacity=".3"/></svg></div>
+        <div class="corner corner-tr"><svg viewBox="0 0 60 60"><path d="M4 4 L36 4 M4 4 L4 36" stroke="#c9a84c" stroke-width="2" fill="none"/><path d="M4 4 L20 20" stroke="#c9a84c" stroke-width="1" fill="none" opacity=".5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity=".9"/><circle cx="36" cy="4" r="2" fill="#c9a84c" opacity=".4"/><circle cx="4" cy="36" r="2" fill="#c9a84c" opacity=".4"/><circle cx="16" cy="12" r="1.5" fill="#c9a84c" opacity=".6"/></svg></div>
+        <div class="corner corner-bl"><svg viewBox="0 0 60 60"><path d="M4 4 L36 4 M4 4 L4 36" stroke="#c9a84c" stroke-width="2" fill="none"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity=".9"/><circle cx="36" cy="4" r="2" fill="#c9a84c" opacity=".4"/><circle cx="4" cy="36" r="2" fill="#c9a84c" opacity=".4"/></svg></div>
+        <div class="corner corner-br"><svg viewBox="0 0 60 60"><path d="M4 4 L36 4 M4 4 L4 36" stroke="#c9a84c" stroke-width="2" fill="none"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity=".9"/><circle cx="36" cy="4" r="2" fill="#c9a84c" opacity=".4"/><circle cx="4" cy="36" r="2" fill="#c9a84c" opacity=".4"/></svg></div>
+
+        <!-- Header -->
+        <div class="header-area">
+          <div class="hdiv"><div class="hdiv-line"></div><div class="hdiv-diamond"></div><div class="hdiv-line"></div></div>
+          <div class="main-title" id="c-title">World of Warcraft:<br>Midnight Endgame Activities</div>
+          <div class="subtitle-text" id="c-subtitle">A visual guide to the major endgame paths in Midnight.</div>
+          <div class="hdiv" style="margin-top:4px"><div class="hdiv-line"></div><div class="hdiv-diamond"></div><div class="hdiv-line"></div></div>
+        </div>
+
+        <!-- Background image layer (behind everything) -->
+        <div id="canvas-bg-img" style="display:none;position:absolute;inset:0;z-index:0;pointer-events:none;">
+          <img id="canvas-bg-img-el" src="" style="width:100%;height:100%;object-fit:cover;opacity:0.35;">
+        </div>
+
+        <!-- Lightning — lines calculated from orb centre (960,540) to panel edges -->
+        <svg class="lightning-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="gf-t"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="gf-g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="gf-p"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- Panel 1: top-left  (right edge ~570, centre y ~269) -->
+          <path d="M900 510 L750 460 L620 330 L570 269" stroke="#c9a84c" stroke-width="2" fill="none" opacity=".65" filter="url(#gf-g)"/>
+          <path d="M900 510 L752 458 L622 328 L570 269" stroke="#fff8e0" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 2: top-right (left edge ~1350, centre y ~269) -->
+          <path d="M1020 510 L1170 460 L1300 330 L1350 269" stroke="#4ecdc4" stroke-width="2" fill="none" opacity=".65" filter="url(#gf-t)"/>
+          <path d="M1020 510 L1172 458 L1302 328 L1350 269" stroke="#e0ffff" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 3: mid-left  (right edge ~520, centre y ~517) -->
+          <path d="M830 540 L720 535 L620 530 L520 517" stroke="#9b59b6" stroke-width="2" fill="none" opacity=".65" filter="url(#gf-p)"/>
+          <path d="M830 540 L722 533 L622 528 L520 517" stroke="#e0c0ff" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 4: mid-right (left edge ~1400, centre y ~517) -->
+          <path d="M1090 540 L1200 535 L1300 530 L1400 517" stroke="#c9a84c" stroke-width="2" fill="none" opacity=".65" filter="url(#gf-g)"/>
+          <path d="M1090 540 L1202 533 L1302 528 L1400 517" stroke="#fff8e0" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 5: bottom-left-mid  (right edge ~535, centre y ~752) -->
+          <path d="M880 590 L760 640 L650 700 L535 752" stroke="#4ecdc4" stroke-width="2" fill="none" opacity=".65" filter="url(#gf-t)"/>
+          <path d="M880 590 L762 638 L652 698 L535 752" stroke="#e0ffff" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 6: bottom-right-mid (left edge ~1385, centre y ~752) -->
+          <path d="M1040 590 L1160 640 L1270 700 L1385 752" stroke="#7ab648" stroke-width="2" fill="none" opacity=".65"/>
+          <path d="M1040 590 L1162 638 L1272 698 L1385 752" stroke="#d0ffb0" stroke-width=".6" fill="none" opacity=".3"/>
+          <!-- Panel 7: bottom-far-left  (right edge ~525, centre y ~967) -->
+          <path d="M870 610 L760 700 L640 810 L525 967" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity=".5" filter="url(#gf-g)"/>
+          <!-- Panel 8: bottom-far-right (left edge ~1395, centre y ~967) -->
+          <path d="M1050 610 L1160 700 L1280 810 L1395 967" stroke="#4ecdc4" stroke-width="1.5" fill="none" opacity=".5" filter="url(#gf-t)"/>
+        </svg>
+
+        <!-- Central Orb -->
+        <div class="center-orb">
+          <div class="orb-ring"></div>
+          <div class="orb-ring-inner">
+            <!-- Orb image layer -->
+            <img id="canvas-orb-img" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:50%;opacity:0.55;z-index:1;">
+          </div>
+          <div class="orb-text"><div class="orb-title" id="c-orb">Midnight<br>Endgame</div></div>
+        </div>
+
+        <!-- Dungeon Dojo Logo -->
+        <div id="canvas-logo" style="display:none;position:absolute;z-index:8;pointer-events:none;">
+          <img id="canvas-logo-img" src="" alt="Dungeon Dojo Logo" style="width:120px;height:auto;object-fit:contain;">
+        </div>
+
+        <!-- Panels rendered by JS -->
+        <div id="panels-container"></div>
+
+        <div class="moon-symbol">☽</div>
+      </div>
+    </div>
+    <div class="canvas-scale-note" id="scaleNote"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const THEMES = ['t-gold','t-teal','t-purple','t-green','t-red','t-blue'];
+const THEME_LABELS = {
+  't-gold':'Gold','t-teal':'Teal','t-purple':'Purple',
+  't-green':'Green','t-red':'Crimson','t-blue':'Sapphire'
+};
+const THEME_COLORS = {
+  't-gold':'#c9a84c','t-teal':'#4ecdc4','t-purple':'#9b59b6',
+  't-green':'#7ab648','t-red':'#cc4444','t-blue':'#4466cc'
+};
+
+const DEFAULT_PANELS = [
+  {id:1,title:'Power Progression',theme:'t-gold',bullets:['Raids','Mythic+','Heroic / Mythic 0 Dungeons','Delves','Prey','Great Vault'],img:null,
+   pos:{left:'80px',top:'158px',width:'490px',height:'222px'}},
+  {id:2,title:'Outdoor & World Content',theme:'t-teal',bullets:['World Quests','Weekly Quests','Silvermoon Court / Saltheril\'s Soiree','Abundance','Legends of the Haranir','Stormarion Assault'],img:null,
+   pos:{right:'80px',top:'158px',width:'490px',height:'222px'}},
+  {id:3,title:'PvP',theme:'t-purple',bullets:['Slayer\'s Rise (Epic Battleground)','War Mode in Voidstorm','Arenas','Battlegrounds','Training Grounds'],img:null,
+   pos:{left:'80px',top:'416px',width:'440px',height:'202px'}},
+  {id:4,title:'Housing & Social',theme:'t-gold',bullets:['Player Housing','Neighbourhoods','Monthly Endeavors','Guild Social Spaces','Decor Collecting'],img:null,
+   pos:{right:'80px',top:'416px',width:'440px',height:'202px'}},
+  {id:5,title:'Collections',theme:'t-teal',bullets:['Transmog','Mounts','Pets','Toys','Titles','Achievements'],img:null,
+   pos:{left:'80px',top:'652px',width:'455px',height:'200px'}},
+  {id:6,title:'Professions & Economy',theme:'t-green',bullets:['Crafting Gear','Gathering','Auction House','Consumables','Housing Decor Crafting'],img:null,
+   pos:{right:'80px',top:'652px',width:'455px',height:'200px'}},
+  {id:7,title:'Story & Lore',theme:'t-gold',bullets:['Campaign Chapters','Arator Journey','Haranir Lore','Arcartina Stories','Zone Side Quests'],img:null,
+   pos:{left:'80px',top:'876px',width:'445px',height:'182px'}},
+  {id:8,title:'Weekly Goal Ideas',theme:'t-teal',bullets:['Quick: Prey / World Quests','Mid: Delves / Renown','Session: Mythic+ / PvP','Evening: Raids / Guild Events'],img:null,
+   pos:{right:'80px',top:'876px',width:'445px',height:'182px'}},
+];
+
+let panels = JSON.parse(JSON.stringify(DEFAULT_PANELS));
+let selectedPanel = null;
+let aiSuggestionData = null;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  scaleCanvas();
+  window.addEventListener('resize', scaleCanvas);
+  renderPanels();
+  buildPanelSelector();
+  buildAITargetSelect();
+});
+
+function scaleCanvas() {
+  const canvas = document.getElementById('canvas');
+  const area = document.querySelector('.canvas-area');
+  const availW = area.clientWidth - 40;
+  const availH = area.clientHeight - 60;
+  const scale = Math.min(1, availW / 1920, availH / 1080);
+  canvas.style.transform = `scale(${scale})`;
+  canvas.parentElement.style.width = `${1920 * scale}px`;
+  canvas.parentElement.style.height = `${1080 * scale}px`;
+  document.getElementById('scaleNote').textContent = `1920 × 1080px · displayed at ${Math.round(scale*100)}%`;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderPanels() {
+  const container = document.getElementById('panels-container');
+  container.innerHTML = '';
+  panels.forEach(p => {
+    const div = document.createElement('div');
+    div.className = `inf-panel ${p.theme}${selectedPanel === p.id ? ' selected' : ''}`;
+    div.id = `panel-${p.id}`;
+    div.dataset.panelId = p.id;
+    Object.entries(p.pos).forEach(([k,v]) => div.style[k] = v);
+    div.style.position = 'absolute';
+
+    const imgContent = p.img
+      ? `<div class="pimg" data-panel-id="${p.id}" onclick="event.stopPropagation();uploadPanelImage(${p.id})" style="background-image:url('${p.img}');background-size:cover;background-position:center;"></div>`
+      : `<div class="pimg" data-panel-id="${p.id}" onclick="event.stopPropagation();uploadPanelImage(${p.id})" title="Click to upload">📷<span style="font-size:9px">Upload</span></div>`;
+
+    const bullets = p.bullets.map(b => `<li>${escHtml(b)}</li>`).join('');
+
+    div.innerHTML = `
+      <div class="inf-panel-inner">
+        <div class="panel-body">
+          ${imgContent}
+          <div class="panel-text">
+            <div class="pheading">${escHtml(p.title)}</div>
+            <ul class="plist">${bullets}</ul>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── PANEL SELECTION ──────────────────────────────────────────────────────────
+function handleCanvasClick(e) {
+  const panelEl = e.target.closest('.inf-panel');
+  if (panelEl) {
+    selectPanel(parseInt(panelEl.dataset.panelId));
+  } else if (!e.target.closest('.inf-panel')) {
+    deselectPanel();
+  }
+}
+
+function selectPanel(id) {
+  selectedPanel = id;
+  renderPanels();
+  buildPanelEditor(id);
+  switchTab('panel');
+  highlightSelectorBtn(id);
+}
+
+function deselectPanel() {
+  selectedPanel = null;
+  renderPanels();
+  document.getElementById('panel-editor-content').innerHTML = `<div style="color:rgba(201,168,76,0.4);font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;text-align:center;padding:20px;">← Click a panel on the canvas<br>or select one from Global tab</div>`;
+  highlightSelectorBtn(null);
+}
+
+function highlightSelectorBtn(id) {
+  document.querySelectorAll('.psel-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.id) === id);
+  });
+}
+
+// ─── PANEL EDITOR ─────────────────────────────────────────────────────────────
+function buildPanelEditor(id) {
+  const p = panels.find(x => x.id === id);
+  if (!p) return;
+  const themeSwatches = THEMES.map(t =>
+    `<div class="swatch${p.theme===t?' active':''}" data-theme="${t}" title="${THEME_LABELS[t]}"
+      style="background:${THEME_COLORS[t]}" onclick="setPanelTheme(${id},'${t}')"></div>`
+  ).join('');
+
+  const bulletRows = p.bullets.map((b,i) =>
+    `<div class="bullet-row">
+      <input class="bullet-input" value="${escHtml(b)}" oninput="updateBullet(${id},${i},this.value)">
+      <button class="icon-btn" onclick="moveBullet(${id},${i},-1)" title="Move up">↑</button>
+      <button class="icon-btn" onclick="moveBullet(${id},${i},1)" title="Move down">↓</button>
+      <button class="icon-btn del" onclick="deleteBullet(${id},${i})" title="Delete">✕</button>
+    </div>`
+  ).join('');
+
+  document.getElementById('panel-editor-content').innerHTML = `
+    <div class="field-group">
+      <div class="field-label">Panel Title</div>
+      <input class="field-input" value="${escHtml(p.title)}" oninput="setPanelTitle(${id},this.value)" style="font-family:'Cinzel',serif;">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Colour Theme</div>
+      <div class="swatch-row">${themeSwatches}</div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-title">Bullet Points</div>
+    <div class="bullets-list" id="bullets-list-${id}">${bulletRows}</div>
+    <button class="add-bullet-btn" onclick="addBullet(${id})">+ Add Bullet</button>
+    <div class="section-divider"></div>
+    <div class="section-title">Image</div>
+    <button class="hbtn" onclick="uploadPanelImage(${id})" style="width:100%;margin-top:2px;">📷 Upload Image</button>
+    ${p.img ? `<button class="hbtn" onclick="clearPanelImage(${id})" style="width:100%;margin-top:4px;border-color:#aa4444;color:#ff8888;">✕ Remove Image</button>` : ''}
+    <div class="section-divider"></div>
+    <div class="section-title">Panel Size</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <div class="field-group">
+        <div class="field-label">Width</div>
+        <input class="field-input" value="${p.pos.width}" oninput="setPanelSize(${id},'width',this.value)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Height</div>
+        <input class="field-input" value="${p.pos.height}" oninput="setPanelSize(${id},'height',this.value)">
+      </div>
+    </div>
+  `;
+}
+
+// ─── PANEL MUTATIONS ──────────────────────────────────────────────────────────
+function getPanelIndex(id) { return panels.findIndex(p => p.id === id); }
+
+function setPanelTitle(id, val) {
+  panels[getPanelIndex(id)].title = val;
+  renderPanels();
+}
+function setPanelTheme(id, theme) {
+  panels[getPanelIndex(id)].theme = theme;
+  renderPanels();
+  buildPanelEditor(id);
+}
+function updateBullet(id, i, val) {
+  panels[getPanelIndex(id)].bullets[i] = val;
+  renderPanels();
+}
+function addBullet(id) {
+  panels[getPanelIndex(id)].bullets.push('New item');
+  renderPanels();
+  buildPanelEditor(id);
+}
+function deleteBullet(id, i) {
+  panels[getPanelIndex(id)].bullets.splice(i,1);
+  renderPanels();
+  buildPanelEditor(id);
+}
+function moveBullet(id, i, dir) {
+  const p = panels[getPanelIndex(id)];
+  const ni = i + dir;
+  if (ni < 0 || ni >= p.bullets.length) return;
+  [p.bullets[i], p.bullets[ni]] = [p.bullets[ni], p.bullets[i]];
+  renderPanels();
+  buildPanelEditor(id);
+}
+function setPanelSize(id, prop, val) {
+  panels[getPanelIndex(id)].pos[prop] = val;
+  renderPanels();
+}
+function clearPanelImage(id) {
+  panels[getPanelIndex(id)].img = null;
+  renderPanels();
+  buildPanelEditor(id);
+}
+
+// ─── GLOBAL MUTATIONS ─────────────────────────────────────────────────────────
+function updateGlobal() {
+  const titleRaw = document.getElementById('g-title').value;
+  document.getElementById('c-title').innerHTML = titleRaw.replace(/\n/g,'<br>');
+  document.getElementById('c-subtitle').textContent = document.getElementById('g-subtitle').value;
+  const orbRaw = document.getElementById('g-orb').value;
+  document.getElementById('c-orb').innerHTML = orbRaw.replace(/\n/g,'<br>');
+
+  const bg = document.getElementById('g-bg').value;
+  const canvas = document.getElementById('canvas');
+  const bgs = {
+    space: 'radial-gradient(ellipse at 50% 60%,#0a1a3a 0%,#04090f 60%,#000 100%)',
+    deep: 'radial-gradient(ellipse at 50% 50%,#050010 0%,#000 100%)',
+    forest: 'radial-gradient(ellipse at 50% 40%,#061a06 0%,#020f02 60%,#000 100%)',
+    fire: 'radial-gradient(ellipse at 50% 80%,#2a0a00 0%,#0f0400 60%,#000 100%)',
+  };
+  canvas.style.background = bgs[bg];
+}
+
+// ─── PANEL SELECTOR ───────────────────────────────────────────────────────────
+function buildPanelSelector() {
+  const sel = document.getElementById('panelSelector');
+  sel.innerHTML = panels.map(p =>
+    `<button class="psel-btn" data-id="${p.id}" onclick="selectPanel(${p.id})">${p.id}. ${p.title}</button>`
+  ).join('');
+}
+
+function buildAITargetSelect() {
+  const sel = document.getElementById('ai-target-panel');
+  sel.innerHTML = '<option value="all">All panels</option>' +
+    panels.map(p => `<option value="${p.id}">${p.id}. ${p.title}</option>`).join('');
+}
+
+// ─── IMAGE UPLOAD ─────────────────────────────────────────────────────────────
+function uploadPanelImage(id) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      panels[getPanelIndex(id)].img = ev.target.result;
+      renderPanels();
+      if (selectedPanel === id) buildPanelEditor(id);
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.stab').forEach((t,i) => {
+    t.classList.toggle('active', ['global','panel','ai'][i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach((p,i) => {
+    p.classList.toggle('active', ['tab-global','tab-panel','tab-ai'][i] === `tab-${tab}`);
+  });
+}
+
+// ─── AI FEATURES ──────────────────────────────────────────────────────────────
+async function aiSuggestPanel() {
+  const context = document.getElementById('ai-context').value;
+  const target = document.getElementById('ai-target-panel').value;
+  const customPrompt = document.getElementById('ai-custom-prompt').value;
+  const resultEl = document.getElementById('ai-result');
+  const btn = document.getElementById('aiPanelBtn');
+  const applyBtn = document.getElementById('aiApplyBtn');
+
+  let panelInfo = '';
+  if (target === 'all') {
+    panelInfo = panels.map(p => `Panel ${p.id}: "${p.title}"`).join(', ');
+  } else {
+    const p = panels.find(x => x.id === parseInt(target));
+    panelInfo = `Panel ${p.id}: "${p.title}"`;
+  }
+
+  const prompt = `You are helping build a visual infographic for: "${context}".
+${customPrompt ? `Additional context: ${customPrompt}` : ''}
+
+Generate bullet point content for: ${panelInfo}
+
+${target === 'all'
+  ? 'Return a JSON object with panel IDs as keys, each containing "title" and "bullets" (array of strings, max 6). Return ONLY valid JSON, no markdown.'
+  : 'Return a JSON object with "title" (string) and "bullets" (array of 4-6 strings). Return ONLY valid JSON, no markdown.'}`;
+
+  btn.disabled = true;
+  resultEl.className = 'ai-result loading';
+  resultEl.innerHTML = '<span class="spinner"></span> Summoning arcane knowledge...';
+  applyBtn.style.display = 'none';
+  aiSuggestionData = null;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.map(c => c.text||'').join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    aiSuggestionData = {target, parsed};
+
+    if (target === 'all') {
+      let preview = '';
+      Object.entries(parsed).forEach(([id, val]) => {
+        const p = panels.find(x => x.id === parseInt(id));
+        if (!p) return;
+        preview += `<strong style="color:var(--gold-light);font-family:'Cinzel',serif;">${val.title || p.title}</strong><br>`;
+        (val.bullets||[]).forEach(b => preview += `✦ ${b}<br>`);
+        preview += '<br>';
+      });
+      resultEl.className = 'ai-result';
+      resultEl.innerHTML = preview;
+      applyBtn.textContent = '✦ Apply All Panels';
+    } else {
+      resultEl.className = 'ai-result';
+      resultEl.innerHTML = `<strong style="color:var(--gold-light);font-family:'Cinzel',serif;">${parsed.title}</strong><br>${(parsed.bullets||[]).map(b=>`✦ ${b}`).join('<br>')}`;
+      applyBtn.textContent = '✦ Apply to Panel';
+    }
+    applyBtn.style.display = 'block';
+  } catch(err) {
+    resultEl.className = 'ai-result';
+    resultEl.textContent = 'Error contacting AI. Please try again.';
+  }
+  btn.disabled = false;
+}
+
+function applyAISuggestion() {
+  if (!aiSuggestionData) return;
+  const {target, parsed} = aiSuggestionData;
+  if (target === 'all') {
+    Object.entries(parsed).forEach(([id, val]) => {
+      const idx = getPanelIndex(parseInt(id));
+      if (idx === -1) return;
+      if (val.title) panels[idx].title = val.title;
+      if (val.bullets) panels[idx].bullets = val.bullets;
+    });
+    buildPanelSelector();
+    buildAITargetSelect();
+  } else {
+    const idx = getPanelIndex(parseInt(target));
+    if (parsed.title) panels[idx].title = parsed.title;
+    if (parsed.bullets) panels[idx].bullets = parsed.bullets;
+    if (selectedPanel === parseInt(target)) buildPanelEditor(parseInt(target));
+  }
+  renderPanels();
+  showToast('✦ AI content applied');
+}
+
+async function aiSuggestAll() {
+  document.getElementById('ai-target-panel').value = 'all';
+  switchTab('ai');
+  await aiSuggestPanel();
+}
+
+// ─── BACKGROUND IMAGE ─────────────────────────────────────────────────────────
+function uploadBgImage() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const el = document.getElementById('canvas-bg-img');
+      const img = document.getElementById('canvas-bg-img-el');
+      img.src = ev.target.result;
+      el.style.display = 'block';
+      document.getElementById('remove-bg-img-btn').style.display = 'block';
+      showToast('✦ Background image uploaded!');
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+function removeBgImage() {
+  document.getElementById('canvas-bg-img').style.display = 'none';
+  document.getElementById('canvas-bg-img-el').src = '';
+  document.getElementById('remove-bg-img-btn').style.display = 'none';
+}
+function updateBgImageOpacity(val) {
+  document.getElementById('g-bg-img-opacity-val').textContent = val + '%';
+  document.getElementById('canvas-bg-img-el').style.opacity = val / 100;
+}
+
+// ─── ORB IMAGE ────────────────────────────────────────────────────────────────
+function uploadOrbImage() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = document.getElementById('canvas-orb-img');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      document.getElementById('remove-orb-img-btn').style.display = 'block';
+      showToast('✦ Orb image uploaded!');
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+function removeOrbImage() {
+  const img = document.getElementById('canvas-orb-img');
+  img.src = ''; img.style.display = 'none';
+  document.getElementById('remove-orb-img-btn').style.display = 'none';
+}
+function updateOrbImageOpacity(val) {
+  document.getElementById('g-orb-img-opacity-val').textContent = val + '%';
+  document.getElementById('canvas-orb-img').style.opacity = val / 100;
+}
+
+// ─── LOGO ─────────────────────────────────────────────────────────────────────
+let logoData = null;
+
+function uploadLogo() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      logoData = ev.target.result;
+      document.getElementById('canvas-logo-img').src = logoData;
+      document.getElementById('canvas-logo').style.display = 'block';
+      document.getElementById('remove-logo-btn').style.display = 'block';
+      updateLogoPosition();
+      showToast('✦ Logo uploaded!');
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function removeLogo() {
+  logoData = null;
+  document.getElementById('canvas-logo').style.display = 'none';
+  document.getElementById('remove-logo-btn').style.display = 'none';
+}
+
+function updateLogoPosition() {
+  if (!logoData) return;
+  const el = document.getElementById('canvas-logo');
+  const pos = document.getElementById('g-logo-pos').value;
+  const size = parseInt(document.getElementById('g-logo-size').value);
+  // Reset positioning
+  el.style.top = el.style.bottom = el.style.left = el.style.right = 'auto';
+  el.style.transform = 'none';
+  const pad = '30px';
+  if (pos === 'top-right')    { el.style.top = pad; el.style.right = pad; }
+  if (pos === 'top-left')     { el.style.top = pad; el.style.left = pad; }
+  if (pos === 'bottom-right') { el.style.bottom = pad; el.style.right = pad; }
+  if (pos === 'orb') {
+    el.style.top = '50%'; el.style.left = '50%';
+    el.style.transform = 'translate(-50%, -50%)';
+  }
+}
+
+function updateLogoSize(val) {
+  document.getElementById('g-logo-size-val').textContent = val + 'px';
+  document.getElementById('canvas-logo-img').style.width = val + 'px';
+}
+
+function updateLogoOpacity(val) {
+  document.getElementById('g-logo-opacity-val').textContent = val + '%';
+  document.getElementById('canvas-logo').style.opacity = val / 100;
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+async function exportPNG() {
+  showToast('✦ Capturing infographic...');
+  deselectPanel();
+  await new Promise(r => setTimeout(r, 100));
+  const canvas = document.getElementById('canvas');
+  const origTransform = canvas.style.transform;
+  canvas.style.transform = 'scale(1)';
+  canvas.parentElement.style.width = '1920px';
+  canvas.parentElement.style.height = '1080px';
+  await new Promise(r => setTimeout(r, 80));
+  try {
+    const c = await html2canvas(canvas, {
+      width: 1920, height: 1080,
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: '#04090f',
+      removeContainer: true,
+      imageTimeout: 0,
+    });
+    const a = document.createElement('a');
+    a.download = 'dungeon-dojo-infographic.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+    showToast('✦ PNG exported!');
+  } catch(e) {
+    showToast('Export error — try Print > Save as PDF instead');
+  }
+  canvas.style.transform = origTransform;
+  scaleCanvas();
+}
+
+function resetCanvas() {
+  if (!confirm('Reset everything to defaults?')) return;
+  panels = JSON.parse(JSON.stringify(DEFAULT_PANELS));
+  selectedPanel = null;
+  renderPanels();
+  buildPanelSelector();
+  buildAITargetSelect();
+  deselectPanel();
+  showToast('✦ Reset to defaults');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

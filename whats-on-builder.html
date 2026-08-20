@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dungeon Dojo: This Week Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0c0d12;
+    --panel:#15171f;
+    --panel2:#1b1e28;
+    --line:#2a2e3a;
+    --ink:#eee9dd;
+    --ink-dim:#9a9ba6;
+    --gold:#c9a15a;
+    --gold-bright:#e8c583;
+    --jade:#4fae8f;
+    --crimson:#b0475f;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--void);color:var(--ink);}
+  .app{display:flex;flex-direction:column;height:100vh;}
+
+  .topbar{
+    display:flex;align-items:center;gap:16px;padding:12px 18px;
+    background:linear-gradient(180deg,#181a23,#121319);
+    border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-right:auto;}
+  .brand .mark{width:26px;height:26px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold-bright);}
+  .brand h1{font-family:'Cinzel',serif;font-size:16px;letter-spacing:.04em;margin:0;font-weight:700;color:var(--gold-bright);}
+  .brand span{font-size:11px;color:var(--ink-dim);display:block;letter-spacing:.03em;}
+
+  select, input[type=text]{
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;padding:7px 9px;font-size:13px;font-family:inherit;
+  }
+  select:focus, input:focus, textarea:focus{outline:1px solid var(--gold);}
+
+  .btn{
+    border:1px solid var(--gold);background:transparent;color:var(--gold-bright);
+    padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;letter-spacing:.02em;
+  }
+  .btn:hover{background:rgba(201,161,90,.12);}
+  .btn.primary{background:var(--gold);color:#1a1408;border-color:var(--gold);}
+  .btn.primary:hover{background:var(--gold-bright);}
+  .btn.ghost{border-color:var(--line);color:var(--ink-dim);}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--ink-dim);}
+  .btn.small{padding:4px 8px;font-size:12px;}
+  .btn.danger{border-color:var(--crimson);color:#e79ba8;}
+  .btn.danger:hover{background:rgba(176,71,95,.15);}
+
+  .workbench{display:flex;flex:1;min-height:0;}
+  .rail{
+    width:360px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);
+    overflow-y:auto;padding:18px;
+  }
+  .stage{
+    flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;
+    padding:32px;background:
+      radial-gradient(circle at 20% 10%, rgba(79,174,143,.05), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(201,161,90,.05), transparent 40%),
+      #0a0b0f;
+  }
+  #preview{max-width:100%;height:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);border-radius:2px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:6px;font-weight:600;}
+  .field input[type=text], .field select, .field textarea{width:100%;}
+  .field textarea{
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;padding:8px 9px;font-size:13px;font-family:inherit;resize:vertical;min-height:64px;line-height:1.5;
+  }
+  .row{display:flex;gap:8px;}
+  .row > *{flex:1;}
+
+  .section-divider{
+    font-family:'Cinzel',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:8px;margin:22px 0 14px;
+  }
+  .section-divider:first-child{margin-top:0;}
+
+  .upload{
+    border:1px dashed var(--line);border-radius:8px;padding:14px;text-align:center;
+    cursor:pointer;font-size:12px;color:var(--ink-dim);
+  }
+  .upload:hover{border-color:var(--gold);color:var(--gold-bright);}
+  .upload.has-file{border-style:solid;border-color:var(--jade);color:var(--ink);}
+
+  .card{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:12px;margin-bottom:12px;
+  }
+  .card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .card-head .icon-input{width:52px;text-align:center;font-size:16px;flex-shrink:0;}
+  .card-head .title-input{flex:1;}
+  .card-actions{display:flex;gap:4px;flex-shrink:0;}
+
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--void);}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px;}
+
+  .hint{font-size:11px;color:var(--ink-dim);margin-top:4px;line-height:1.4;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">寺</div>
+      <div>
+        <h1>This Week Builder</h1>
+        <span>Dungeon Dojo infographic tool</span>
+      </div>
+    </div>
+    <select id="widthPreset">
+      <option value="900">Compact, 900px wide</option>
+      <option value="1080" selected>Standard, 1080px wide</option>
+      <option value="1350">Large, 1350px wide</option>
+    </select>
+    <select id="templateSelect">
+      <option value="">Load starter…</option>
+      <option value="digest">This Week Digest</option>
+      <option value="itinerary_eu">What's On - EU</option>
+      <option value="itinerary_na">What's On - NA (ET/PT)</option>
+    </select>
+    <button class="btn ghost small" id="resetBtn">Reset</button>
+    <button class="btn" id="downloadPng">Download PNG</button>
+    <button class="btn primary" id="downloadJpg">Download JPG</button>
+  </div>
+
+  <div class="workbench">
+    <aside class="rail">
+
+      <div class="section-divider">Logo</div>
+      <div class="field">
+        <div class="upload" id="logoUpload">Click to upload the Dojo logo (PNG, transparent background works best)</div>
+        <input type="file" id="logoInput" accept="image/*" style="display:none">
+      </div>
+      <div class="field">
+        <label>Logo position</label>
+        <select id="logoPos">
+          <option value="right">Top right</option>
+          <option value="left">Top left</option>
+        </select>
+      </div>
+
+      <div class="section-divider">Header</div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="titleInput" value="This Week in WoW">
+      </div>
+      <div class="field">
+        <label>Subtitle</label>
+        <input type="text" id="subtitleInput" value="Season 2 begins: NA today, EU tomorrow">
+      </div>
+      <div class="field">
+        <label>Theme</label>
+        <select id="themeSelect">
+          <option value="dungeondojo" selected>Dungeon Dojo (official brand)</option>
+          <option value="venomous">Venomous Abyss (jade &amp; violet)</option>
+          <option value="golden">Golden Dojo (brass &amp; ink)</option>
+          <option value="frostfall">Frostfall (ice blue)</option>
+          <option value="crimson">Crimson Siege (red &amp; black)</option>
+          <option value="void">Void (deep purple)</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="upload" id="bgUpload">Optional: upload a custom background image</div>
+        <input type="file" id="bgInput" accept="image/*" style="display:none">
+        <div class="hint" id="bgClear" style="display:none;cursor:pointer;color:var(--crimson);">Remove custom background</div>
+      </div>
+
+      <div class="section-divider">Sections</div>
+      <div id="sectionsList"></div>
+      <button class="btn ghost" id="addSection" style="width:100%;margin-top:4px;">+ Add section</button>
+
+      <div class="section-divider">Footer</div>
+      <div class="field">
+        <label>Footer line</label>
+        <input type="text" id="footerInput" value="Dungeon Dojo  •  react below to get pinged for events">
+      </div>
+
+    </aside>
+    <main class="stage">
+      <canvas id="preview" width="1080" height="1350"></canvas>
+    </main>
+  </div>
+</div>
+
+<script>
+const THEMES = {
+  dungeondojo:{ bgTop:'#270339', bgBottom:'#0e0116', title:'#f2e8f9', accent:'#c9a15a', accent2:'#b98be0', rule:'rgba(201,161,90,.4)', body:'#ece4f2', dim:'#a998b8', ring:'#c9a15a' },
+  venomous: { bgTop:'#0d1712', bgBottom:'#1a0f22', title:'#c9f2c0', accent:'#7bd389', accent2:'#a988e0', rule:'rgba(123,211,137,.35)', body:'#e7e2d6', dim:'#9fb0a3', ring:'#7bd389' },
+  golden:   { bgTop:'#15130d', bgBottom:'#0c0b09', title:'#f0d9a3', accent:'#c9a15a', accent2:'#4fae8f', rule:'rgba(201,161,90,.4)', body:'#eee9dd', dim:'#a79c86', ring:'#c9a15a' },
+  frostfall:{ bgTop:'#0c1620', bgBottom:'#101a2b', title:'#cfeeff', accent:'#6cc6e8', accent2:'#e8c583', rule:'rgba(108,198,232,.35)', body:'#e3eef2', dim:'#93aab5', ring:'#6cc6e8' },
+  crimson:  { bgTop:'#180a0c', bgBottom:'#0c0808', title:'#f2c9c9', accent:'#c94f5c', accent2:'#e8c583', rule:'rgba(201,79,92,.4)', body:'#ece3e0', dim:'#a78d8d', ring:'#c94f5c' },
+  void:     { bgTop:'#120c1c', bgBottom:'#0a0810', title:'#dcc9f2', accent:'#9a6fd9', accent2:'#e8c583', rule:'rgba(154,111,217,.4)', body:'#e6e0ee', dim:'#a094ab', ring:'#9a6fd9' },
+};
+
+const PRESET_GROUPS = [
+  { label:'Topics', types:{
+    raid: {icon:'⚔️', title:'Raid'},
+    mplus: {icon:'🗝️', title:'Mythic+'},
+    lair: {icon:'🐉', title:'Lair'},
+    prey: {icon:'🏹', title:'Prey'},
+    collectors: {icon:'🐾', title:'Collectors'},
+    weekly: {icon:'🏆', title:'Weekly Event'},
+    microholidays: {icon:'🎉', title:'Micro-Holidays'},
+    timewalking: {icon:'⏳', title:'Timewalking'},
+    news: {icon:'📰', title:'Notable News'},
+    custom: {icon:'✦', title:'Custom'},
+  }},
+  { label:'Days', types:{
+    monday: {icon:'🗓', title:'Monday'},
+    tuesday: {icon:'🗓', title:'Tuesday'},
+    wednesday: {icon:'🗓', title:'Wednesday'},
+    thursday: {icon:'🗓', title:'Thursday'},
+    friday: {icon:'🗓', title:'Friday'},
+    saturday: {icon:'🗓', title:'Saturday'},
+    sunday: {icon:'🗓', title:'Sunday'},
+  }},
+];
+// flat lookup kept for compatibility
+const PRESET_TYPES = Object.assign({}, ...PRESET_GROUPS.map(g=>g.types));
+
+const TEMPLATES = {
+  digest: {
+    title:'This Week in WoW',
+    subtitle:'Season 2 begins: NA today, EU tomorrow',
+    footer:'Dungeon Dojo  •  react below to get pinged for events',
+    sections:[
+      {icon:'⚔️', title:'Raid', body:'The Venomous Abyss, all difficulties.\nWing 1 available in Raid Finder.\nDojo Normal runs: NA & EU, sign up in #raid-signups.', visible:true},
+      {icon:'🗝️', title:'Mythic+', body:'Dojo M+ nights on both NA & EU.\nNew rotation? New spec? All welcome.\nOrganise your own in #mythic-plus-chat.', visible:true},
+      {icon:'🐾', title:'Collectors', body:'New pet: Slitherfang, found in Altar of Fangs.\nEU events run later in the season.\nNA events: Sat & Sun, check #collectors for times.', visible:true},
+      {icon:'🎉', title:'Micro-Holidays', body:'Nothing running this week.', visible:false},
+      {icon:'⏳', title:'Timewalking', body:'Nothing running this week.', visible:false},
+      {icon:'📰', title:'Notable News', body:'Nothing to report this week.', visible:false},
+    ]
+  },
+  itinerary_eu: {
+    title:"What's On | Dojo EU",
+    subtitle:"This week's activities in the Dungeon Dojo on EU servers.",
+    footer:'Dungeon Dojo  •  Discord.gg/dungeon-dojo',
+    sections:[
+      {icon:'🗓', title:'Monday', body:'8:00 PM Server Time - Collector Event', visible:true},
+      {icon:'🗓', title:'Tuesday', body:'8:00 PM Server Time - M+ Push Night', visible:true},
+      {icon:'🗓', title:'Wednesday', body:'7:30 PM Server Time - Guild Raid Night', visible:true},
+      {icon:'🗓', title:'Thursday', body:'8:00 PM Server Time - M+ Learner Night', visible:true},
+      {icon:'🗓', title:'Friday', body:'8:00 PM Server Time - Community Raid Night', visible:true},
+      {icon:'🗓', title:'Saturday', body:'8:00 PM Server Time - Collector Transmog Runs', visible:true},
+      {icon:'🗓', title:'Sunday', body:'7:30 PM Server Time - Guild Raid Night', visible:true},
+    ]
+  },
+  itinerary_na: {
+    title:"What's On | DOJO NA",
+    subtitle:"This week's activities in the Dungeon Dojo on NA servers.",
+    footer:'Dungeon Dojo  •  Discord.gg/dungeon-dojo',
+    sections:[
+      {icon:'🗓', title:'Monday', body:'8:00 PM ET / 5:00 PM PT - Dojo NA Guild Mythic+', visible:true},
+      {icon:'🗓', title:'Wednesday', body:'7:00 PM ET / 4:00 PM PT - Dojo NA Guild Raid', visible:true},
+      {icon:'🗓', title:'Saturday', body:'12:00 PM ET / 9:00 AM PT - Community Mythic+ Event\n3:00 PM ET / 12:00 PM PT - Community Collectors Event\n7:00 PM ET / 4:00 PM PT - Community Raid Event', visible:true},
+      {icon:'🗓', title:'Sunday', body:'1:00 PM ET / 10:00 AM PT - Community Mythic+ Event\n4:00 PM ET / 1:00 PM PT - Community Collectors Event\n6:00 PM ET / 3:00 PM PT - Dojo NA Guild Raid', visible:true},
+      {icon:'🗓', title:'Friday', body:'6:00 PM ET / 3:00 PM PT - Community Raid Event (coming soon)', visible:false},
+    ]
+  }
+};
+
+
+
+function defaultState(templateKey){
+  const t = TEMPLATES[templateKey || 'digest'];
+  return {
+    logoDataUrl:null, logoImg:null, logoPos:'right',
+    bgDataUrl:null, bgImg:null,
+    theme:'dungeondojo',
+    title:t.title,
+    subtitle:t.subtitle,
+    footer:t.footer,
+    width:1080,
+    sections: t.sections.map(s=>({...s}))
+  };
+}
+
+let state = defaultState('digest');
+const canvas = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+
+// ---------- font loading ----------
+const fontsReady = Promise.all([
+  document.fonts.load('700 40px Cinzel'),
+  document.fonts.load('600 24px Cinzel'),
+  document.fonts.load('500 22px Cinzel'),
+  document.fonts.load('400 20px Inter'),
+  document.fonts.load('600 20px Inter'),
+  document.fonts.load('700 20px Inter'),
+]).catch(()=>{});
+
+// ---------- helpers ----------
+function wrapLines(ctx, text, maxWidth){
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for(const w of words){
+    const test = cur ? cur + ' ' + w : w;
+    if(ctx.measureText(test).width > maxWidth && cur){
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawCircularImage(ctx, img, cx, cy, r, ringColor){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.closePath();
+  ctx.clip();
+  // cover-fit
+  const iw = img.width, ih = img.height;
+  const scale = Math.max((r*2)/iw, (r*2)/ih);
+  const dw = iw*scale, dh = ih*scale;
+  ctx.drawImage(img, cx-dw/2, cy-dh/2, dw, dh);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = ringColor;
+  ctx.stroke();
+}
+
+// ---------- main paint routine (used for both measuring and drawing) ----------
+function paint(width, commit){
+  const t = THEMES[state.theme];
+  const pad = Math.round(width*0.055);
+  const contentW = width - pad*2;
+  let y = pad;
+
+  const c = commit ? ctx : document.createElement('canvas').getContext('2d');
+  // measuring pass uses a scratch ctx so we never touch the visible canvas prematurely
+
+  // ---- header ----
+  const hasLogo = !!state.logoImg;
+  const logoR = Math.round(width*0.052);
+  const headerH = Math.max(hasLogo ? logoR*2 : 0, Math.round(width*0.10));
+
+  if(commit){
+    // background
+    const grad = ctx.createLinearGradient(0,0,0, 10); // temp, real height set after measuring
+  }
+
+  // title
+  c.font = `700 ${Math.round(width*0.052)}px Cinzel`;
+  const titleLines = wrapLines(c, state.title.toUpperCase(), contentW - (hasLogo? logoR*2+24:0));
+  const titleLH = Math.round(width*0.062);
+
+  // subtitle
+  c.font = `400 ${Math.round(width*0.021)}px Inter`;
+  const subLines = state.subtitle ? wrapLines(c, state.subtitle, contentW - (hasLogo? logoR*2+24:0)) : [];
+  const subLH = Math.round(width*0.030);
+
+  let headerTextH = titleLines.length*titleLH + (subLines.length? 10+subLines.length*subLH : 0);
+  const headerBlockH = Math.max(headerTextH, hasLogo? logoR*2 : 0);
+
+  if(commit){
+    // draw logo
+    if(hasLogo){
+      const cx = state.logoPos==='right' ? width - pad - logoR : pad + logoR;
+      drawCircularImage(ctx, state.logoImg, cx, y + headerBlockH/2, logoR, t.ring);
+    }
+    // draw title/subtitle, offset away from logo side
+    const textX = hasLogo && state.logoPos==='left' ? pad + logoR*2 + 24 : pad;
+    const textAlignRight = false;
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = t.title;
+    ctx.font = `700 ${Math.round(width*0.052)}px Cinzel`;
+    let ty = y + titleLH*0.78;
+    for(const line of titleLines){
+      ctx.fillText(line, textX, ty);
+      ty += titleLH;
+    }
+    if(subLines.length){
+      ty += 6;
+      ctx.fillStyle = t.dim;
+      ctx.font = `400 ${Math.round(width*0.021)}px Inter`;
+      for(const line of subLines){
+        ctx.fillText(line, textX, ty);
+        ty += subLH;
+      }
+    }
+  }
+  y += headerBlockH + Math.round(width*0.03);
+
+  // divider rule
+  if(commit){
+    ctx.strokeStyle = t.rule;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pad, y);
+    ctx.lineTo(width-pad, y);
+    ctx.stroke();
+  }
+  y += Math.round(width*0.035);
+
+  // ---- sections ----
+  const markerR = Math.round(width*0.019);
+  const sectionTitleFont = `600 ${Math.round(width*0.027)}px Cinzel`;
+  const sectionTitleLH = Math.round(width*0.036);
+  const bodyFont = `400 ${Math.round(width*0.0195)}px Inter`;
+  const bodyLH = Math.round(width*0.0285);
+  const bulletIndent = Math.round(width*0.028);
+  const textX0 = pad + markerR*2 + 14;
+  const sectionGap = Math.round(width*0.032);
+
+  const activeSections = state.sections.filter(s => s.visible !== false);
+  for(const sec of activeSections){
+    const secTop = y;
+
+    if(commit){
+      ctx.beginPath();
+      ctx.arc(pad+markerR, y+markerR*0.85, markerR, 0, Math.PI*2);
+      ctx.fillStyle = t.accent;
+      ctx.globalAlpha = 0.18;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = t.accent;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.font = `${Math.round(width*0.020)}px "Inter", "Apple Color Emoji","Segoe UI Emoji"`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = t.accent2;
+      ctx.fillText(sec.icon || '✦', pad+markerR, y+markerR*0.85+1);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+
+      ctx.fillStyle = t.title;
+      ctx.font = sectionTitleFont;
+      ctx.fillText(sec.title || '', textX0, y+markerR*1.15);
+    }
+    y += sectionTitleLH + Math.round(width*0.012);
+
+    const bodyLines = (sec.body||'').split('\n').filter(l=>l.trim().length>0);
+    c.font = bodyFont;
+    for(const raw of bodyLines){
+      const wrapped = wrapLines(c, raw, contentW - textX0 + pad - bulletIndent);
+      wrapped.forEach((ln, i)=>{
+        if(commit){
+          ctx.fillStyle = t.body;
+          ctx.font = bodyFont;
+          if(i===0){
+            ctx.fillStyle = t.accent;
+            ctx.fillText('•', textX0, y);
+            ctx.fillStyle = t.body;
+          }
+          ctx.fillText(ln, textX0 + bulletIndent, y);
+        }
+        y += bodyLH;
+      });
+    }
+    y += sectionGap;
+  }
+
+  // ---- footer ----
+  y += Math.round(width*0.012);
+  if(commit){
+    ctx.strokeStyle = t.rule;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, y);
+    ctx.lineTo(width-pad, y);
+    ctx.stroke();
+  }
+  y += Math.round(width*0.028);
+  if(state.footer){
+    c.font = `500 ${Math.round(width*0.017)}px Inter`;
+    const footLines = wrapLines(c, state.footer, contentW);
+    if(commit){
+      ctx.fillStyle = t.dim;
+      ctx.font = `500 ${Math.round(width*0.017)}px Inter`;
+      let fy = y;
+      for(const line of footLines){
+        ctx.fillText(line, pad, fy);
+        fy += Math.round(width*0.024);
+      }
+    }
+    y += footLines.length * Math.round(width*0.024);
+  }
+
+  y += pad*0.6;
+  return y;
+}
+
+function render(){
+  const width = state.width;
+  // pass 1: measure total height without drawing
+  const totalH = Math.ceil(paint(width, false));
+
+  canvas.width = width;
+  canvas.height = totalH;
+
+  const t = THEMES[state.theme];
+
+  // background
+  if(state.bgImg){
+    const iw = state.bgImg.width, ih = state.bgImg.height;
+    const scale = Math.max(width/iw, totalH/ih);
+    const dw = iw*scale, dh = ih*scale;
+    ctx.drawImage(state.bgImg, (width-dw)/2, (totalH-dh)/2, dw, dh);
+    ctx.fillStyle = 'rgba(8,8,10,0.55)';
+    ctx.fillRect(0,0,width,totalH);
+  } else {
+    const grad = ctx.createLinearGradient(0,0,0,totalH);
+    grad.addColorStop(0, t.bgTop);
+    grad.addColorStop(1, t.bgBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,width,totalH);
+  }
+  // subtle vignette
+  const vg = ctx.createRadialGradient(width/2, totalH*0.15, totalH*0.1, width/2, totalH*0.4, totalH*0.9);
+  vg.addColorStop(0,'rgba(255,255,255,0.04)');
+  vg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0,0,width,totalH);
+
+  // pass 2: real draw
+  paint(width, true);
+}
+
+function scheduleRender(){ fontsReady.then(render); }
+
+// ---------- controls wiring ----------
+document.getElementById('widthPreset').addEventListener('change', e=>{
+  state.width = parseInt(e.target.value, 10);
+  render();
+});
+
+document.getElementById('titleInput').addEventListener('input', e=>{ state.title = e.target.value; render(); });
+document.getElementById('subtitleInput').addEventListener('input', e=>{ state.subtitle = e.target.value; render(); });
+document.getElementById('footerInput').addEventListener('input', e=>{ state.footer = e.target.value; render(); });
+document.getElementById('themeSelect').addEventListener('change', e=>{ state.theme = e.target.value; render(); });
+document.getElementById('logoPos').addEventListener('change', e=>{ state.logoPos = e.target.value; render(); });
+
+function loadImageFromFile(file, cb){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=> cb(reader.result, img);
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+const logoUpload = document.getElementById('logoUpload');
+const logoInput = document.getElementById('logoInput');
+logoUpload.addEventListener('click', ()=> logoInput.click());
+logoInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  loadImageFromFile(f, (dataUrl, img)=>{
+    state.logoDataUrl = dataUrl;
+    state.logoImg = img;
+    logoUpload.textContent = 'Logo loaded, click to replace';
+    logoUpload.classList.add('has-file');
+    render();
+  });
+});
+
+const bgUpload = document.getElementById('bgUpload');
+const bgInput = document.getElementById('bgInput');
+const bgClear = document.getElementById('bgClear');
+bgUpload.addEventListener('click', ()=> bgInput.click());
+bgInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  loadImageFromFile(f, (dataUrl, img)=>{
+    state.bgDataUrl = dataUrl;
+    state.bgImg = img;
+    bgUpload.textContent = 'Custom background loaded, click to replace';
+    bgUpload.classList.add('has-file');
+    bgClear.style.display = 'block';
+    render();
+  });
+});
+bgClear.addEventListener('click', ()=>{
+  state.bgDataUrl = null; state.bgImg = null;
+  bgUpload.textContent = 'Optional: upload a custom background image';
+  bgUpload.classList.remove('has-file');
+  bgClear.style.display = 'none';
+  render();
+});
+
+document.getElementById('templateSelect').addEventListener('change', e=>{
+  const key = e.target.value;
+  if(!key){ return; }
+  if(!confirm(`Load the "${e.target.options[e.target.selectedIndex].textContent}" starter? This clears your current title, subtitle, footer and sections (logo and background are kept).`)){
+    e.target.value = '';
+    return;
+  }
+  const fresh = defaultState(key);
+  state.title = fresh.title; state.subtitle = fresh.subtitle; state.footer = fresh.footer; state.sections = fresh.sections;
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('subtitleInput').value = state.subtitle;
+  document.getElementById('footerInput').value = state.footer;
+  renderSectionsList();
+  render();
+  e.target.value = '';
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Reset all fields to the starter template? This clears your current content, logo and background.')) return;
+  state = defaultState('digest');
+  document.getElementById('titleInput').value = state.title;
+  document.getElementById('subtitleInput').value = state.subtitle;
+  document.getElementById('footerInput').value = state.footer;
+  document.getElementById('themeSelect').value = state.theme;
+  document.getElementById('logoPos').value = state.logoPos;
+  logoUpload.textContent = 'Click to upload the Dojo logo (PNG, transparent background works best)';
+  logoUpload.classList.remove('has-file');
+  bgUpload.textContent = 'Optional: upload a custom background image';
+  bgUpload.classList.remove('has-file');
+  bgClear.style.display = 'none';
+  renderSectionsList();
+  render();
+});
+
+// ---------- sections list UI ----------
+const sectionsList = document.getElementById('sectionsList');
+
+function renderSectionsList(){
+  sectionsList.innerHTML = '';
+  state.sections.forEach((sec, idx)=>{
+    if(sec.visible === undefined) sec.visible = true;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.opacity = sec.visible ? '1' : '.45';
+
+    const head = document.createElement('div');
+    head.className = 'card-head';
+
+    const visBtn = document.createElement('button');
+    visBtn.className = 'btn ghost small';
+    visBtn.style.flexShrink = '0';
+    visBtn.title = sec.visible ? 'Visible, click to hide from graphic' : 'Hidden, click to show in graphic';
+    visBtn.textContent = sec.visible ? '👁' : '🚫';
+    visBtn.addEventListener('click', ()=>{ sec.visible = !sec.visible; renderSectionsList(); render(); });
+
+    const iconInput = document.createElement('input');
+    iconInput.type = 'text';
+    iconInput.className = 'icon-input';
+    iconInput.value = sec.icon;
+    iconInput.maxLength = 4;
+    iconInput.addEventListener('input', e=>{ sec.icon = e.target.value; render(); });
+
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'title-input';
+    titleInput.value = sec.title;
+    titleInput.placeholder = 'Section title';
+    titleInput.addEventListener('input', e=>{ sec.title = e.target.value; render(); });
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const upBtn = document.createElement('button');
+    upBtn.className = 'btn ghost small'; upBtn.textContent = '↑';
+    upBtn.addEventListener('click', ()=>{ if(idx>0){ [state.sections[idx-1],state.sections[idx]]=[state.sections[idx],state.sections[idx-1]]; renderSectionsList(); render(); }});
+    const downBtn = document.createElement('button');
+    downBtn.className = 'btn ghost small'; downBtn.textContent = '↓';
+    downBtn.addEventListener('click', ()=>{ if(idx<state.sections.length-1){ [state.sections[idx+1],state.sections[idx]]=[state.sections[idx],state.sections[idx+1]]; renderSectionsList(); render(); }});
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn danger small'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', ()=>{ state.sections.splice(idx,1); renderSectionsList(); render(); });
+
+    actions.append(upBtn, downBtn, delBtn);
+    head.append(visBtn, iconInput, titleInput, actions);
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.width='100%'; typeSelect.style.marginBottom='8px';
+    const blankOpt = document.createElement('option');
+    blankOpt.value=''; blankOpt.textContent='Apply preset type…';
+    typeSelect.appendChild(blankOpt);
+    PRESET_GROUPS.forEach(group=>{
+      const og = document.createElement('optgroup');
+      og.label = group.label;
+      Object.entries(group.types).forEach(([key,val])=>{
+        const opt = document.createElement('option');
+        opt.value = key; opt.textContent = `${val.icon} ${val.title}`;
+        og.appendChild(opt);
+      });
+      typeSelect.appendChild(og);
+    });
+    typeSelect.addEventListener('change', e=>{
+      const preset = PRESET_TYPES[e.target.value];
+      if(preset){
+        sec.icon = preset.icon; sec.title = preset.title;
+        iconInput.value = sec.icon; titleInput.value = sec.title;
+        render();
+      }
+      typeSelect.value = '';
+    });
+
+    const bodyTextarea = document.createElement('textarea');
+    bodyTextarea.value = sec.body;
+    bodyTextarea.placeholder = 'One point per line, each line becomes a bullet';
+    bodyTextarea.addEventListener('input', e=>{ sec.body = e.target.value; render(); });
+
+    card.append(head, typeSelect, bodyTextarea);
+    sectionsList.appendChild(card);
+  });
+}
+
+document.getElementById('addSection').addEventListener('click', ()=>{
+  state.sections.push({icon:'✦', title:'New Section', body:'Add details here.', visible:true});
+  renderSectionsList();
+  render();
+});
+
+// ---------- export ----------
+function download(type){
+  const mime = type==='png' ? 'image/png' : 'image/jpeg';
+  const ext = type==='png' ? 'png' : 'jpg';
+  let exportCanvas = canvas;
+  if(type==='jpg'){
+    // flatten onto opaque background for JPG (no alpha support)
+    exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width; exportCanvas.height = canvas.height;
+    const ec = exportCanvas.getContext('2d');
+    ec.fillStyle = THEMES[state.theme].bgBottom;
+    ec.fillRect(0,0,exportCanvas.width, exportCanvas.height);
+    ec.drawImage(canvas,0,0);
+  }
+  const url = exportCanvas.toDataURL(mime, 0.95);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `this-week-in-wow-${stamp}.${ext}`;
+  a.click();
+}
+document.getElementById('downloadPng').addEventListener('click', ()=> download('png'));
+document.getElementById('downloadJpg').addEventListener('click', ()=> download('jpg'));
+
+// ---------- init ----------
+document.getElementById('titleInput').value = state.title;
+document.getElementById('subtitleInput').value = state.subtitle;
+document.getElementById('footerInput').value = state.footer;
+document.getElementById('themeSelect').value = state.theme;
+renderSectionsList();
+scheduleRender();
+window.addEventListener('load', scheduleRender);
+</script>
+</body>
+</html>
